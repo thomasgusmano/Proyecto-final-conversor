@@ -3,7 +3,6 @@ from tkinter import Tk, Label, Button, filedialog, OptionMenu, StringVar
 from charset_normalizer import from_path
 
 def detect_encoding(path):
-    """Detecta BOM (UTF-8/UTF-16). Si no es UTF detectado, asume ANSI (windows-1252)."""
     try:
         with open(path, 'rb') as f:
             start = f.read(4)
@@ -21,7 +20,6 @@ def detect_encoding(path):
         return 'windows-1252'
 
 def friendly_name(enc):
-    """Convierte codificación técnica a nombre amigable para mostrar en la UI."""
     if not enc: return 'desconocida'
     enc = enc.lower()
     if enc == 'windows-1252': return 'ANSI'
@@ -31,20 +29,14 @@ def friendly_name(enc):
     return enc
 
 def convert_file(src, dst, enc_from, enc_to):
-    """Convierte archivo leyendo en enc_from y escribiendo en enc_to.
-       Reemplaza caracteres no soportados para evitar errores."""
     text = open(src, 'r', encoding=enc_from, errors='replace').read()
     with open(dst, 'wb') as f:
-        # Agregar BOM explícito para UTF-16 BE/LE
         if enc_to in ('utf-16-be', 'utf-16-le'):
             f.write(b'\xFE\xFF' if enc_to.endswith('be') else b'\xFF\xFE')
-        # Para utf-8-sig, escribir el BOM lo maneja encode('utf-8-sig'), pero aquí usamos encode con errors='replace'
-        # Encodificar y escribir bytes
         if enc_to == 'utf-8-sig':
             f.write(text.encode('utf-8-sig', errors='replace'))
         else:
             f.write(text.encode(enc_to, errors='replace'))
-
     status_label.config(text=f"Convertido a {friendly_name(enc_to)}: {os.path.basename(dst)}")
 
 def select_file():
@@ -74,7 +66,6 @@ def convert():
     if save:
         convert_file(app.file, save, enc_from, enc_to)
 
-# --- Interfaz ---
 app = Tk()
 app.title("Conversor de Codificación (Notepad++ compatible)")
 
@@ -96,7 +87,7 @@ enc_var = StringVar(app, "UTF-8")
 OptionMenu(app, enc_var, *enc_opts).grid(row=1, column=1, padx=10)
 
 Button(app, text="Convertir", command=convert, width=20).grid(row=2, column=0, columnspan=3, pady=12)
-status_label = Label(app, text="")   # barra de estado
+status_label = Label(app, text="")
 status_label.grid(row=3, column=0, columnspan=3, pady=6)
 
 app.mainloop()
