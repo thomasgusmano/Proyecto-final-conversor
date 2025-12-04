@@ -1,17 +1,22 @@
-#define MyAppName "Conversor de Codificación"
-#define MyAppVersion "1.0"
-#define MyAppPublisher "Tu Nombre"
-#define MyAppURL "https://github.com/tuusuario/conversor"
-#define MyAppExeName "conversor.py"
+#define ConfigFile "config.ini"
+#define MyAppName "{#ReadIniValue(ConfigFile, 'AppInfo', 'AppName')}"
+#define MyAppVersion "{#ReadIniValue(ConfigFile, 'AppInfo', 'AppVersion')}"
+#define MyAppPublisher "{#ReadIniValue(ConfigFile, 'AppInfo', 'AppPublisher')}"
+#define MyAppPublisherURL "{#ReadIniValue(ConfigFile, 'AppInfo', 'AppPublisherURL')}"
+#define MyAppExeName "{#ReadIniValue(ConfigFile, 'AppInfo', 'AppExeName')}"
+#define DefaultEncoding "{#ReadIniValue(ConfigFile, 'Encodings', 'DefaultEncoding')}"
+#define PreferredEncoding "{#ReadIniValue(ConfigFile, 'Encodings', 'PreferredEncoding')}"
+#define PythonExecutable "{#ReadIniValue(ConfigFile, 'Python', 'PythonExecutable')}"
+#define CharsetNormalizer "{#ReadIniValue(ConfigFile, 'Python', 'CharsetNormalizer')}"
 
 [Setup]
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-AppPublisherURL={#MyAppURL}
-AppSupportURL={#MyAppURL}
-AppUpdatesURL={#MyAppURL}
+AppPublisherURL={#MyAppPublisherURL}
+AppSupportURL={#MyAppPublisherURL}
+AppUpdatesURL={#MyAppPublisherURL}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
@@ -28,6 +33,7 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Files]
 Source: "conversor.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#CharsetNormalizer}"; DestDir: "{tmp}"; Flags: external
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
@@ -37,9 +43,22 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDi
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Run]
-Filename: "python.exe"; Parameters: """{app}\{#MyAppExeName}"""; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent runascurrentuser
+Filename: "{#PythonExecutable}"; Parameters: """{app}\{#MyAppExeName}"""; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent runascurrentuser
 
 [Code]
+function ReadIniValue(const IniFile, Section, Key: string): string;
+var
+  Ini: TIniFile;
+begin
+  Result := '';
+  Ini := TIniFile.Create(IniFile);
+  try
+    Result := Ini.ReadString(Section, Key, '');
+  finally
+    Ini.Free;
+  end;
+end;
+
 function InitializeSetup(): Boolean;
 begin
   if not RegKeyExists(HKLM, 'SOFTWARE\Python\PythonCore') and
