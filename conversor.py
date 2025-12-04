@@ -1,6 +1,15 @@
 import os
+import configparser
 from tkinter import Tk, Label, Button, filedialog, OptionMenu, StringVar
 from charset_normalizer import from_path
+
+# Leer el archivo config.ini
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+# Obtener configuraciones de codificación desde el archivo .ini
+default_encoding = config['Encodings']['DefaultEncoding']
+preferred_encoding = config['Encodings']['PreferredEncoding']
 
 def detect_encoding(path):
     try:
@@ -15,9 +24,9 @@ def detect_encoding(path):
             enc = result.encoding.lower()
             if enc in ('utf_8','utf-8','utf_16','utf_16_be','utf_16_le'):
                 return enc
-        return 'windows-1252'
+        return default_encoding  # Usa el valor por defecto del config.ini
     except Exception:
-        return 'windows-1252'
+        return default_encoding
 
 def friendly_name(enc):
     if not enc: return 'desconocida'
